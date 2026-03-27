@@ -10,7 +10,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Celtic knot border top -->
     <div class="celtic-border"></div>
 
     <header>
@@ -19,103 +18,346 @@
                 <h1 class="logo">mmMAPPR</h1>
                 <p class="subtitle">The Faherty Family Birthday Chronicle</p>
             </div>
+            <nav class="tab-nav">
+                <button class="tab-btn active" data-view="dashboard">Dashboard</button>
+                <button class="tab-btn" data-view="tree">Family Tree</button>
+            </nav>
             <div class="legend" id="legend"></div>
         </div>
     </header>
 
-    <!-- Upcoming birthdays spotlight -->
-    <section class="spotlight" id="spotlight">
-        <div class="spotlight-inner"></div>
-    </section>
+    <!-- ==================== DASHBOARD VIEW ==================== -->
+    <div id="dashboardView" class="view active">
+        <section class="spotlight" id="spotlight">
+            <div class="spotlight-inner"></div>
+        </section>
 
-    <!-- Analytics cards -->
-    <section class="analytics">
-        <div class="analytics-grid" id="analyticsGrid">
-            <div class="card" id="cardPopularMonth">
-                <div class="card-label">Top 3 Months</div>
-                <div class="card-value" id="popularMonth"></div>
-                <div class="card-detail" id="popularMonthDetail"></div>
+        <section class="analytics">
+            <div class="analytics-grid" id="analyticsGrid">
+                <div class="card" id="cardPopularMonth">
+                    <div class="card-label">Top 3 Months</div>
+                    <div class="card-value" id="popularMonth"></div>
+                    <div class="card-detail" id="popularMonthDetail"></div>
+                </div>
+                <div class="card" id="cardZodiac">
+                    <div class="card-label">Top 3 Zodiac Signs</div>
+                    <div class="card-value" id="topZodiac"></div>
+                    <div class="card-detail" id="zodiacDetail"></div>
+                </div>
+                <div class="card" id="cardChinese">
+                    <div class="card-label">Top 3 Chinese Zodiac</div>
+                    <div class="card-value" id="topChinese"></div>
+                    <div class="card-detail" id="chineseDetail"></div>
+                </div>
+                <div class="card" id="cardClosest">
+                    <div class="card-label">Top 3 Closest Birthdays</div>
+                    <div class="card-value" id="closestBdays"></div>
+                    <div class="card-detail" id="closestDetail"></div>
+                </div>
+                <div class="card" id="cardLoneliest">
+                    <div class="card-label">Loneliest Birthday</div>
+                    <div class="card-value" id="loneliestBday"></div>
+                    <div class="card-detail" id="loneliestDetail"></div>
+                </div>
+                <div class="card" id="cardCount">
+                    <div class="card-label">Family Members</div>
+                    <div class="card-value" id="memberCount"></div>
+                    <div class="card-detail" id="countDetail"></div>
+                </div>
             </div>
-            <div class="card" id="cardZodiac">
-                <div class="card-label">Top 3 Zodiac Signs</div>
-                <div class="card-value" id="topZodiac"></div>
-                <div class="card-detail" id="zodiacDetail"></div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Generation Map</h2>
+            <p class="section-subtitle">Where the Faherty family falls across modern generations</p>
+            <div class="gen-map" id="genMap"></div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">The Year at a Glance</h2>
+            <p class="section-subtitle">Every birthday mapped around the calendar year</p>
+            <div class="calendar-ring-container">
+                <canvas id="calendarRing" width="700" height="700"></canvas>
+                <div class="ring-tooltip" id="ringTooltip" style="display:none;"></div>
             </div>
-            <div class="card" id="cardChinese">
-                <div class="card-label">Top 3 Chinese Zodiac</div>
-                <div class="card-value" id="topChinese"></div>
-                <div class="card-detail" id="chineseDetail"></div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">All Birthdays</h2>
+            <p class="section-subtitle">Sorted by date in the year &mdash; coloured by family line</p>
+            <div class="table-controls">
+                <select id="filterLine">
+                    <option value="all">All Family Lines</option>
+                </select>
+                <select id="filterGen">
+                    <option value="all">All Generations</option>
+                    <option value="0">Grandparents</option>
+                    <option value="1">Children &amp; Spouses</option>
+                    <option value="2">Grandchildren &amp; Spouses</option>
+                    <option value="3">Great-Grandchildren</option>
+                </select>
+                <button class="btn-export" id="exportICS">Export to Outlook (.ics)</button>
+                <button class="btn-export" id="exportGoogle">Export to Google Calendar</button>
             </div>
-            <div class="card" id="cardClosest">
-                <div class="card-label">Top 3 Closest Birthdays</div>
-                <div class="card-value" id="closestBdays"></div>
-                <div class="card-detail" id="closestDetail"></div>
+            <div class="table-wrapper">
+                <table id="bdayTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Birthday</th>
+                            <th>Age</th>
+                            <th>Zodiac</th>
+                            <th>Chinese Zodiac</th>
+                            <th>Family Line</th>
+                            <th>Generation</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bdayBody"></tbody>
+                </table>
             </div>
-            <div class="card" id="cardLoneliest">
-                <div class="card-label">Loneliest Birthday</div>
-                <div class="card-value" id="loneliestBday"></div>
-                <div class="card-detail" id="loneliestDetail"></div>
-            </div>
-            <div class="card" id="cardCount">
-                <div class="card-label">Family Members</div>
-                <div class="card-value" id="memberCount"></div>
-                <div class="card-detail" id="countDetail"></div>
+        </section>
+    </div>
+
+    <!-- ==================== FAMILY TREE VIEW ==================== -->
+    <div id="treeView" class="view">
+        <div class="tree-container">
+            <h2 class="section-title" style="text-align:center;margin-bottom:8px;">The Faherty &amp; McNally Family Tree</h2>
+            <p class="section-subtitle" style="text-align:center;margin-bottom:30px;">Scroll horizontally to explore the full tree</p>
+
+            <div class="tree-scroll">
+                <div class="tree">
+                    <!-- ====== ANCESTORS SECTION ====== -->
+                    <div class="tree-ancestors">
+                        <div class="ancestor-columns">
+                            <!-- Philip Faherty & Anna Welsh -->
+                            <div class="ancestor-block">
+                                <div class="tree-node couple">Philip Faherty &amp; Anna Welsh</div>
+                                <ul class="tree-children">
+                                    <li><span class="tree-node small">Thomas</span></li>
+                                    <li><span class="tree-node small">Stephen <em>1865</em></span></li>
+                                    <li><span class="tree-node small">Mary Connor <em>1869</em></span></li>
+                                    <li><span class="tree-node small">Bridget Mallon</span></li>
+                                    <li><span class="tree-node small">Martin</span></li>
+                                </ul>
+                                <div class="ancestor-note">Patrick <em>d.1910</em> &middot; Peter &middot; Sarah Maley <em>1875</em></div>
+                            </div>
+
+                            <!-- John Gleason & Margaret Walsh -->
+                            <div class="ancestor-block">
+                                <div class="tree-node couple">John Gleason &amp; Margaret Walsh <em>d.1921</em></div>
+                                <ul class="tree-children">
+                                    <li><span class="tree-node small">John</span></li>
+                                    <li><span class="tree-node small">Catherine</span></li>
+                                    <li><span class="tree-node small">Robert</span></li>
+                                </ul>
+                                <div class="ancestor-note">Patrick <em>d.1901</em> &middot; Dennis <em>d.1963</em> &middot; Norah</div>
+                            </div>
+
+                            <!-- Matthew Dunne & Bridget Kelly -->
+                            <div class="ancestor-block">
+                                <div class="tree-node couple">Matthew Dunne &amp; Bridget Kelly <em>d.1917/1919</em></div>
+                                <ul class="tree-children">
+                                    <li><span class="tree-node small">Margaret</span></li>
+                                    <li><span class="tree-node small">Katherine</span></li>
+                                    <li><span class="tree-node small">Edward</span></li>
+                                    <li><span class="tree-node small">Mary</span></li>
+                                </ul>
+                                <div class="ancestor-note">John Edward &amp; Jane Nebille &rarr; James <em>1919</em>, Edward <em>1934</em></div>
+                            </div>
+
+                            <!-- Arthur McNally & Sarah Cain -->
+                            <div class="ancestor-block">
+                                <div class="tree-node couple">Arthur McNally &amp; Sarah Cain <em>d.1938/1946</em></div>
+                                <ul class="tree-children">
+                                    <li><span class="tree-node small">Thomas &amp; Hannah Roth <em>1892&ndash;1960</em></span></li>
+                                    <li><span class="tree-node small">Lillian</span></li>
+                                    <li><span class="tree-node small">Beatrice</span></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ====== GREAT-GRANDPARENTS LEVEL ====== -->
+                    <div class="tree-level-label">Great-Grandparents</div>
+                    <div class="tree-row two-col">
+                        <!-- Philip C. & Mary Margaret (Faherty side) -->
+                        <div class="tree-branch">
+                            <div class="tree-node couple highlight-faherty">
+                                Philip C. Faherty<br><em>1871&ndash;1940</em>
+                                <span class="tree-married">m. Feb 10, 1904</span>
+                                Mary Margaret<br><em>1876&ndash;1965</em>
+                            </div>
+                            <ul class="tree-children compact">
+                                <li><span class="tree-node small">Margaret <em>1904&ndash;1910</em></span></li>
+                                <li><span class="tree-node small">John <em>1905</em></span></li>
+                                <li>
+                                    <span class="tree-node small">Mary Cecilia &amp; Donald Rainey <em>1905&ndash;1972</em></span>
+                                    <div class="tree-sub">Mary Ann <em>1940</em> &middot; Donald <em>1943</em> &middot; Alice <em>1946</em></div>
+                                </li>
+                                <li>
+                                    <span class="tree-node small">Nora Theresa Agnes &amp; Joe Castagnola <em>1913</em></span>
+                                    <div class="tree-sub">John <em>1940</em> &middot; Thomas <em>1944</em> &middot; Patricia <em>1946</em> &middot; Michael <em>1946</em></div>
+                                </li>
+                                <li>
+                                    <span class="tree-node small">Stephen John &amp; Evelyn Allen <em>1916</em></span>
+                                    <div class="tree-sub">Stephen <em>1942</em> &middot; James <em>1945</em> &middot; Matthew <em>1945</em></div>
+                                </li>
+                                <li><span class="tree-node small">Philip Joseph &amp; Ruth Carpenter <em>1904</em></span></li>
+                                <li><span class="tree-node small">Anne Catherine &amp; Herman Niehaus <em>1901</em></span></li>
+                                <li><span class="tree-node small">Robert Martin &amp; Eleanor Hixon <em>1911</em></span></li>
+                            </ul>
+                        </div>
+
+                        <!-- James Joseph & Mary Bernadette (McNally side) -->
+                        <div class="tree-branch">
+                            <div class="tree-node couple highlight-mcnally">
+                                James Joseph C.<br><em>Apr 30, 1919</em>
+                                <span class="tree-married">&amp;</span>
+                                Mary Bernadette
+                            </div>
+                            <ul class="tree-children compact">
+                                <li>
+                                    <span class="tree-node small">James Matthew &amp; Jean Kosel <em>1922&ndash;1985</em></span>
+                                    <div class="tree-sub">James <em>1954</em> &middot; Joan <em>1959</em> &middot; Joseph <em>1962</em></div>
+                                </li>
+                                <li>
+                                    <span class="tree-node small">Arthur Joseph &amp; Mary Frances Phillbrook <em>1935</em></span>
+                                    <div class="tree-sub">Colleen <em>1962</em> &middot; Cynthia <em>1964</em> &middot; Bridget <em>1968</em></div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- ====== GRANDPARENTS - THE CENTER ====== -->
+                    <div class="tree-level-label">Grandparents</div>
+                    <div class="tree-center">
+                        <div class="tree-node grandparents">
+                            <strong>Thomas James Faherty</strong><br>
+                            <em>1913 &ndash; 1983</em>
+                            <span class="tree-married">m. Oct. 31, 1947</span>
+                            <strong>Mary Bernadette &ldquo;Mom Mom&rdquo;</strong><br>
+                            <em>1920 &ndash;</em>
+                        </div>
+                    </div>
+
+                    <!-- ====== CHILDREN (Gen 1) ====== -->
+                    <div class="tree-level-label">Children</div>
+                    <div class="tree-gen1">
+                        <ul class="tree-children gen1-row">
+                            <!-- Tom & Barb -->
+                            <li class="gen1-branch yellow-line">
+                                <div class="tree-node couple gen1">
+                                    <strong>Thomas James</strong> <em>1952</em>
+                                    <span class="tree-married">m. Jul 10, 1975</span>
+                                    <strong>Barbara Anne Barth</strong> <em>1952</em>
+                                </div>
+                                <ul class="tree-children">
+                                    <li>
+                                        <div class="tree-node gen2">Sarah McNally <em>1979</em><span class="tree-married">m. Dec 14, 2006</span>James &ldquo;Jimbo&rdquo; King <em>1978</em></div>
+                                        <ul class="tree-children gc-row">
+                                            <li><span class="tree-node gc">Brendan James <em>2009</em></span></li>
+                                            <li><span class="tree-node gc">Meghan Mary <em>2010</em></span></li>
+                                            <li><span class="tree-node gc">Declan <em>2014</em></span></li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        <div class="tree-node gen2">Claire Elisabeth <em>1981</em><span class="tree-married">m. Jun 14, 2007</span>James Jimbo Rascoe <em>1979</em></div>
+                                        <ul class="tree-children gc-row">
+                                            <li><span class="tree-node gc">Ian <em>2015</em></span></li>
+                                            <li><span class="tree-node gc">Nora Jane <em>2021</em></span></li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        <div class="tree-node gen2">Thomas Michael <em>1984</em><span class="tree-married">m. Jun 30, 2012</span>Kara Cee Brennan <em>1984</em></div>
+                                        <ul class="tree-children gc-row">
+                                            <li><span class="tree-node gc">Nate <em>2014</em></span></li>
+                                            <li><span class="tree-node gc">Eve <em>2017</em></span></li>
+                                            <li><span class="tree-node gc">Noah <em>2021</em></span></li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        <div class="tree-node gen2">Emily Meghan <em>1986</em><span class="tree-married">&amp;</span>Jordan Rose <em>1987</em></div>
+                                        <ul class="tree-children gc-row">
+                                            <li><span class="tree-node gc">Keely <em>2021</em></span></li>
+                                            <li><span class="tree-node gc">Milo <em>2023</em></span></li>
+                                        </ul>
+                                    </li>
+                                    <li>
+                                        <div class="tree-node gen2">Maura Anne <em>1991</em><span class="tree-married">&amp;</span>Dean Nimmo <em>1992</em></div>
+                                        <ul class="tree-children gc-row">
+                                            <li><span class="tree-node gc">Rory <em>2022</em></span></li>
+                                            <li><span class="tree-node gc">Colin <em>2023</em></span></li>
+                                            <li><span class="tree-node gc">Tessa <em>2025</em></span></li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+
+                            <!-- Terry & Jan -->
+                            <li class="gen1-branch red-line">
+                                <div class="tree-node couple gen1">
+                                    <strong>Terence Philip</strong> <em>1954</em>
+                                    <span class="tree-married">m. Sep 4, 1982</span>
+                                    <strong>Janice Lynn Keefe</strong> <em>1954</em>
+                                </div>
+                            </li>
+
+                            <!-- Tim & Gayle -->
+                            <li class="gen1-branch green-line">
+                                <div class="tree-node couple gen1">
+                                    <strong>Timothy Gleason</strong> <em>1955</em>
+                                    <span class="tree-married">m. Jul 8, 1978</span>
+                                    <strong>Gayle Jean Mason</strong> <em>1955</em>
+                                </div>
+                                <ul class="tree-children">
+                                    <li><span class="tree-node gen2">Katie Rose <em>1983</em></span></li>
+                                    <li>
+                                        <div class="tree-node gen2">Erin Marie <em>1985</em><span class="tree-married">&amp;</span>Chris Faherty <em>1985</em></div>
+                                        <ul class="tree-children gc-row">
+                                            <li><span class="tree-node gc">Luke <em>2022</em></span></li>
+                                            <li><span class="tree-node gc">Owen <em>2025</em></span></li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </li>
+
+                            <!-- Kathy & Jeff -->
+                            <li class="gen1-branch blue-line">
+                                <div class="tree-node couple gen1">
+                                    <strong>Kathleen Mary</strong> <em>1956</em>
+                                    <span class="tree-married">m. Jul 21, 1980</span>
+                                    <strong>Jeffrey Dean Wiest</strong> <em>1954</em>
+                                </div>
+                                <ul class="tree-children">
+                                    <li>
+                                        <div class="tree-node gen2">Christine Lynn <em>1986</em><span class="tree-married">&amp;</span>Jeff Goldstein <em>1990</em></div>
+                                        <ul class="tree-children gc-row">
+                                            <li><span class="tree-node gc">Jack <em>2022</em></span></li>
+                                            <li><span class="tree-node gc">Will <em>2025</em></span></li>
+                                        </ul>
+                                    </li>
+                                    <li><span class="tree-node gen2">Jacob Daniel &ldquo;Jake&rdquo; Wiest <em>1989</em><span class="tree-married">&amp;</span>Lauren Peczkowski <em>1989</em></span></li>
+                                </ul>
+                            </li>
+
+                            <!-- Dennis & Diane -->
+                            <li class="gen1-branch orange-line">
+                                <div class="tree-node couple gen1">
+                                    <strong>Dennis Arthur</strong> <em>1958</em>
+                                    <span class="tree-married">m. Aug 24, 1996</span>
+                                    <strong>Diane</strong> <em>1958</em>
+                                </div>
+                                <ul class="tree-children">
+                                    <li><span class="tree-node gen2">Paul <em>1999</em></span></li>
+                                    <li><span class="tree-node gen2">Maeve <em>2001</em></span></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
-    </section>
-
-    <!-- Generation map -->
-    <section class="section">
-        <h2 class="section-title">Generation Map</h2>
-        <p class="section-subtitle">Where the Faherty family falls across modern generations</p>
-        <div class="gen-map" id="genMap"></div>
-    </section>
-
-    <!-- Birthday calendar wheel -->
-    <section class="section">
-        <h2 class="section-title">The Year at a Glance</h2>
-        <p class="section-subtitle">Every birthday mapped around the calendar year</p>
-        <div class="calendar-ring-container">
-            <canvas id="calendarRing" width="700" height="700"></canvas>
-            <div class="ring-tooltip" id="ringTooltip" style="display:none;"></div>
-        </div>
-    </section>
-
-    <!-- All birthdays table -->
-    <section class="section">
-        <h2 class="section-title">All Birthdays</h2>
-        <p class="section-subtitle">Sorted by date in the year &mdash; coloured by family line</p>
-        <div class="table-controls">
-            <select id="filterLine">
-                <option value="all">All Family Lines</option>
-            </select>
-            <select id="filterGen">
-                <option value="all">All Generations</option>
-                <option value="0">Mom Mom</option>
-                <option value="1">Children &amp; Spouses</option>
-                <option value="2">Grandchildren &amp; Spouses</option>
-                <option value="3">Great-Grandchildren</option>
-            </select>
-            <button class="btn-export" id="exportICS">Export to Outlook (.ics)</button>
-            <button class="btn-export" id="exportGoogle">Export to Google Calendar</button>
-        </div>
-        <div class="table-wrapper">
-            <table id="bdayTable">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Birthday</th>
-                        <th>Age</th>
-                        <th>Zodiac</th>
-                        <th>Chinese Zodiac</th>
-                        <th>Family Line</th>
-                        <th>Generation</th>
-                    </tr>
-                </thead>
-                <tbody id="bdayBody"></tbody>
-            </table>
-        </div>
-    </section>
+    </div>
 
     <footer>
         <div class="celtic-border"></div>

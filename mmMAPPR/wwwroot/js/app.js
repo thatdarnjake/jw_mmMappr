@@ -703,8 +703,21 @@
         return div.innerHTML;
     }
 
+    // ---- Tab Navigation ----
+    function initTabs() {
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.view + 'View').classList.add('active');
+            });
+        });
+    }
+
     // ---- Init ----
     function init() {
+        initTabs();
         renderLegend();
         renderSpotlight();
         renderAnalytics();
