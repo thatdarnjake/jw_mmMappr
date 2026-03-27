@@ -251,37 +251,147 @@
             `${genCounts[3] || 0} great-grandchildren, ${genCounts[2] || 0} grandchildren & spouses, ${genCounts[1] || 0} children & spouses`;
     }
 
-    // ---- Generation Map ----
+    // ---- Generation Map (Canvas) ----
     function renderGenMap() {
-        const container = document.getElementById('genMap');
+        const canvas = document.getElementById('genCanvas');
+        const ctx = canvas.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+        const W = 1000;
+        const H = 350;
+        canvas.width = W * dpr;
+        canvas.height = H * dpr;
+        canvas.style.width = '100%';
+        canvas.style.maxWidth = W + 'px';
+        canvas.style.height = 'auto';
+        ctx.scale(dpr, dpr);
+
         const allYears = members.map(m => m.birthYear);
         const minYear = Math.min(...GENERATIONS.map(g => g.start), ...allYears) - 2;
         const maxYear = Math.max(...GENERATIONS.map(g => g.end), ...allYears) + 2;
         const range = maxYear - minYear;
 
-        container.innerHTML = GENERATIONS.map(gen => {
+        const leftPad = 120;  // space for labels
+        const rightPad = 40;
+        const topPad = 15;
+        const barW = W - leftPad - rightPad;
+        const rowH = 42;
+        const barH = 28;
+        const dotR = 6;
+
+        function yearToX(year) {
+            return leftPad + ((year - minYear) / range) * barW;
+        }
+
+        ctx.clearRect(0, 0, W, H);
+
+        // Store dot positions for hover
+        const dotPositions = [];
+
+        GENERATIONS.forEach((gen, gi) => {
+            const y = topPad + gi * rowH;
+            const barY = y + (rowH - barH) / 2;
             const genMembers = members.filter(m => m.birthYear >= gen.start && m.birthYear <= gen.end);
-            const leftPct = ((gen.start - minYear) / range) * 100;
-            const widthPct = ((gen.end - gen.start) / range) * 100;
 
-            const dots = genMembers.map(m => {
+            // Generation label
+            ctx.fillStyle = gen.color;
+            ctx.font = '600 11px Inter, sans-serif';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(gen.name, leftPad - 14, y + rowH / 2);
+
+            // Year range
+            ctx.fillStyle = '#8a8aa0';
+            ctx.font = '400 9px Inter, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(`${gen.start}–${gen.end}`, yearToX(maxYear) + 8, y + rowH / 2);
+
+            // Background bar (full width)
+            ctx.fillStyle = '#f0ebe3';
+            ctx.beginPath();
+            ctx.roundRect(leftPad, barY, barW, barH, barH / 2);
+            ctx.fill();
+            ctx.strokeStyle = '#e0dbd2';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            // Generation fill bar
+            const x1 = yearToX(gen.start);
+            const x2 = yearToX(gen.end);
+            ctx.fillStyle = gen.color;
+            ctx.globalAlpha = 0.12;
+            ctx.beginPath();
+            ctx.roundRect(x1, barY, x2 - x1, barH, barH / 2);
+            ctx.fill();
+            ctx.globalAlpha = 1;
+
+            // Count badge
+            if (genMembers.length > 0) {
+                ctx.fillStyle = gen.color;
+                ctx.globalAlpha = 0.15;
+                ctx.beginPath();
+                ctx.roundRect(leftPad - 12, barY + 2, 22, barH - 4, 4);
+                ctx.fill();
+                ctx.globalAlpha = 1;
+                ctx.fillStyle = gen.color;
+                ctx.font = 'bold 9px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(genMembers.length, leftPad - 1, y + rowH / 2 + 1);
+            }
+
+            // Dots for members
+            genMembers.forEach((m, mi) => {
                 const line = FAMILY_LINES[m.colorKey] || FAMILY_LINES.Yellow;
-                const posPct = ((m.birthYear - minYear) / range) * 100;
-                return `<div class="gen-person" style="left:${posPct}%;background:${line.css}" title="${m.name} (${m.birthYear})">
-                    <div class="gen-person-tooltip">${esc(m.name)}, ${m.birthYear}<br>Age ${m.age}</div>
-                </div>`;
-            }).join('');
+                const dx = yearToX(m.birthYear);
+                // Jitter vertically to reduce overlap
+                const jitter = ((Math.sin(mi * 97.1 + gi * 43.7) * 43758.5453) % 1) * (barH - dotR * 2 - 4);
+                const dy = barY + dotR + 2 + jitter;
 
-            return `<div class="gen-row">
-                <div class="gen-label" style="color:${gen.color}">${gen.name}</div>
-                <div class="gen-years">${gen.start}–${gen.end}</div>
-                <div class="gen-bar-container">
-                    <div class="gen-bar-fill" style="left:${leftPct}%;width:${widthPct}%;background:${gen.color}"></div>
-                    ${dots}
-                </div>
-                <div style="font-size:0.7rem;color:var(--text-muted);width:30px;text-align:center">${genMembers.length}</div>
-            </div>`;
-        }).join('');
+                ctx.beginPath();
+                ctx.arc(dx, dy, dotR, 0, Math.PI * 2);
+                ctx.fillStyle = line.css;
+                ctx.fill();
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                dotPositions.push({ x: dx, y: dy, member: m, gen });
+            });
+        });
+
+        // Hover tooltip
+        const tooltip = document.getElementById('genTooltip');
+        const container = document.getElementById('genMap');
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = W / rect.width;
+            const scaleY = H / rect.height;
+            const mx = (e.clientX - rect.left) * scaleX;
+            const my = (e.clientY - rect.top) * scaleY;
+
+            let hit = null;
+            for (const p of dotPositions) {
+                const dx = mx - p.x;
+                const dy = my - p.y;
+                if (dx * dx + dy * dy < (dotR + 4) * (dotR + 4)) {
+                    hit = p;
+                    break;
+                }
+            }
+
+            if (hit) {
+                const m = hit.member;
+                const line = FAMILY_LINES[m.colorKey] || FAMILY_LINES.Yellow;
+                tooltip.style.display = 'block';
+                tooltip.style.left = (e.clientX - container.getBoundingClientRect().left + 12) + 'px';
+                tooltip.style.top = (e.clientY - container.getBoundingClientRect().top - 10) + 'px';
+                tooltip.innerHTML = `<strong>${esc(m.name)}</strong><br>${m.birthYear} &middot; Age ${m.age}<br><span style="color:${line.css}">${line.label} line</span><br><span style="color:${hit.gen.color}">${hit.gen.name}</span>`;
+            } else {
+                tooltip.style.display = 'none';
+            }
+        });
+
+        canvas.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
     }
 
     // ---- Calendar Ring (Canvas) ----

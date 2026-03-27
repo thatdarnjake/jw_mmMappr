@@ -248,9 +248,23 @@ header {
 
 /* ---- Generation Map ---- */
 .gen-map {
+    position: relative;
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    justify-content: center;
+}
+
+.gen-tooltip {
+    position: absolute;
+    background: var(--text);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    pointer-events: none;
+    z-index: 10;
+    max-width: 220px;
+    line-height: 1.4;
+    white-space: nowrap;
 }
 
 .gen-row {
