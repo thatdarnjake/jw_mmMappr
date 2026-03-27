@@ -1,9 +1,30 @@
-// mmMAPPR v1 - Faherty Family Birthday Chronicle
+// mm/Mappr v1 - Faherty Family Birthday Chronicle
 (function () {
     'use strict';
 
     const today = new Date();
     const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+    // Daily horoscope cache (loaded once on init)
+    const horoscopes = {};
+
+    async function loadHoroscopes() {
+        const signs = ['aries','taurus','gemini','cancer','leo','virgo',
+                       'libra','scorpio','sagittarius','capricorn','aquarius','pisces'];
+        const todayStr = today.toISOString().slice(0, 10);
+
+        for (const sign of signs) {
+            try {
+                const res = await fetch(`/api/horoscope/${sign}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    horoscopes[sign] = data.horoscope || '';
+                }
+            } catch (e) {
+                // Silently fail - horoscopes are optional
+            }
+        }
+    }
 
     // Parse all members
     const members = FAMILY_DATA.map(d => {
@@ -158,8 +179,7 @@
         document.getElementById('chineseDetail').textContent =
             topCZ.map(c => `${c.animal.name}: ${c.count}`).join(', ');
 
-        // --- Top 3 closest birthdays (cluster-deduped) ---
-        // Group members by dayOfYear so same-date people form one cluster
+        // --- Closest birthdays (all same-date + top 3 nearest) ---
         const dateGroups = {};
         members.forEach(m => {
             if (!dateGroups[m.dayOfYear]) dateGroups[m.dayOfYear] = [];
@@ -167,7 +187,16 @@
         });
         const uniqueDates = Object.keys(dateGroups).map(Number).sort((a, b) => a - b);
 
-        // Find closest distinct-date pairs
+        // All same-date clusters
+        const sameDateLines = [];
+        uniqueDates.forEach(d => {
+            if (dateGroups[d].length > 1) {
+                const names = dateGroups[d].map(m => m.name).join(', ');
+                sameDateLines.push(`${names} — same day! (${formatBdayShort(dateGroups[d][0])})`);
+            }
+        });
+
+        // Closest distinct-date pairs (excluding same-date)
         const datePairs = [];
         for (let i = 0; i < uniqueDates.length; i++) {
             for (let j = i + 1; j < uniqueDates.length; j++) {
@@ -180,37 +209,16 @@
                 });
             }
         }
-        // Also include same-date clusters (dist = 0) where 2+ people share a date
-        uniqueDates.forEach(d => {
-            if (dateGroups[d].length > 1) {
-                datePairs.push({
-                    dist: 0,
-                    groupA: dateGroups[d],
-                    groupB: null // same-date cluster
-                });
-            }
-        });
-
         datePairs.sort((a, b) => a.dist - b.dist);
-        const top3Closest = datePairs.slice(0, 3);
-
-        const closestLines = top3Closest.map(p => {
-            if (p.dist === 0 && !p.groupB) {
-                // Same-date cluster
-                const names = p.groupA.map(m => m.name).join(', ');
-                return `${names} — same day! (${formatBdayShort(p.groupA[0])})`;
-            } else if (p.dist === 0) {
-                const allNames = [...p.groupA, ...p.groupB].map(m => m.name).join(', ');
-                return `${allNames} — same day!`;
-            } else {
-                const namesA = p.groupA.map(m => m.name).join(', ');
-                const namesB = p.groupB.map(m => m.name).join(', ');
-                return `${namesA} & ${namesB} — ${p.dist}d apart`;
-            }
+        const top3Near = datePairs.slice(0, 3).map(p => {
+            const namesA = p.groupA.map(m => m.name).join(', ');
+            const namesB = p.groupB.map(m => m.name).join(', ');
+            return `${namesA} & ${namesB} — ${p.dist}d apart`;
         });
 
-        document.getElementById('closestBdays').innerHTML = closestLines[0] || '';
-        document.getElementById('closestDetail').innerHTML = closestLines.slice(1)
+        const allClosest = [...sameDateLines, ...top3Near];
+        document.getElementById('closestBdays').innerHTML = allClosest[0] || '';
+        document.getElementById('closestDetail').innerHTML = allClosest.slice(1)
             .map(l => `<div style="margin-top:4px">${esc(l)}</div>`).join('');
 
         // --- Loneliest birthday ---
@@ -576,7 +584,12 @@
                     tooltip.style.display = 'block';
                     tooltip.style.left = (e.clientX - containerEl.getBoundingClientRect().left + 12) + 'px';
                     tooltip.style.top = (e.clientY - containerEl.getBoundingClientRect().top - 10) + 'px';
-                    tooltip.innerHTML = `<strong>${hz.symbol} ${hz.name}</strong><br>${MONTHS[hz.startM-1]} ${hz.startD} – ${MONTHS[hz.endM-1]} ${hz.endD}<br><br>${hMembers.map(m => esc(m.name)).join('<br>')}`;
+                    const horo = horoscopes[hz.name.toLowerCase()];
+                    const horoHtml = horo
+                        ? `<br><div style="margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.2);font-style:italic;font-size:0.68rem;max-width:280px;line-height:1.4">Today: ${esc(horo)}</div>`
+                        : '';
+                    tooltip.style.maxWidth = horo ? '320px' : '200px';
+                    tooltip.innerHTML = `<strong>${hz.symbol} ${hz.name}</strong><br>${MONTHS[hz.startM-1]} ${hz.startD} – ${MONTHS[hz.endM-1]} ${hz.endD}<br><br>${hMembers.map(m => esc(m.name)).join('<br>')}${horoHtml}`;
                 }
             } else {
                 if (highlightZodiacIdx !== -1) {
@@ -717,6 +730,7 @@
     // ---- Init ----
     function init() {
         initTabs();
+        loadHoroscopes(); // fire-and-forget, loads in background
         renderLegend();
         renderSpotlight();
         renderAnalytics();
