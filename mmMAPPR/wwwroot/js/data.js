@@ -14,7 +14,7 @@ const FAMILY_DATA = [
     { name: "Jan Faherty", birthday: "1954-04-11", gen: 1, color: "Red" },
     { name: "Sarah King", birthday: "1979-10-03", gen: 2, color: "Yellow" },
     { name: "James King", birthday: "1978-12-07", gen: 2, color: "Yellow" },
-    { name: "Brendan King", birthday: "2009-04-30", gen: 3, color: "Yellow" },
+    { name: "Brendan King", birthday: "2009-11-05", gen: 3, color: "Yellow" },
     { name: "Meghan King", birthday: "2010-08-24", gen: 3, color: "Yellow" },
     { name: "Declan King", birthday: "2014-05-19", gen: 3, color: "Yellow" },
     { name: "Claire Rascoe", birthday: "1981-10-21", gen: 2, color: "Yellow" },
