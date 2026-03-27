@@ -251,99 +251,31 @@ header {
     position: relative;
     display: flex;
     justify-content: center;
+    overflow: visible;
+}
+
+#genCanvas {
+    display: block;
+    max-width: 100%;
+    cursor: pointer;
 }
 
 .gen-tooltip {
-    position: absolute;
+    position: fixed;
     background: var(--text);
     color: white;
-    padding: 6px 12px;
+    padding: 8px 14px;
     border-radius: 8px;
-    font-size: 0.75rem;
-    pointer-events: none;
-    z-index: 10;
-    max-width: 220px;
-    line-height: 1.4;
-    white-space: nowrap;
-}
-
-.gen-row {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
-
-.gen-label {
-    width: 120px;
     font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-    text-align: right;
-    flex-shrink: 0;
-}
-
-.gen-years {
-    font-size: 0.65rem;
-    color: var(--text-muted);
-    width: 80px;
-    flex-shrink: 0;
-}
-
-.gen-bar-container {
-    flex: 1;
-    height: 36px;
-    background: var(--bg-warm);
-    border-radius: 18px;
-    position: relative;
-    overflow: visible;
-    border: 1px solid var(--border);
-}
-
-.gen-bar-fill {
-    position: absolute;
-    top: 0; bottom: 0;
-    border-radius: 18px;
-    opacity: 0.15;
-    overflow: hidden;
-}
-
-.gen-person {
-    position: absolute;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    border: 2px solid white;
-    cursor: pointer;
-    transition: transform 0.2s;
-    z-index: 2;
-}
-
-.gen-person:hover {
-    transform: translate(-50%, -50%) scale(1.6);
-    z-index: 3;
-}
-
-.gen-person-tooltip {
-    display: none;
-    position: absolute;
-    bottom: calc(100% + 8px);
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--text);
-    color: white;
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-size: 0.7rem;
-    white-space: nowrap;
-    z-index: 10;
     pointer-events: none;
+    z-index: 9999;
+    max-width: 240px;
+    line-height: 1.5;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
-.gen-person:hover .gen-person-tooltip {
-    display: block;
-}
+/* (old HTML-based gen map CSS removed — now canvas-based) */
 
 /* ---- Calendar Ring ---- */
 .calendar-ring-container {

@@ -284,13 +284,12 @@
         const canvas = document.getElementById('genCanvas');
         const ctx = canvas.getContext('2d');
         const dpr = window.devicePixelRatio || 1;
-        const W = 1000;
-        const H = 350;
+        const W = 900;
+        const H = 340;
         canvas.width = W * dpr;
         canvas.height = H * dpr;
-        canvas.style.width = '100%';
-        canvas.style.maxWidth = W + 'px';
-        canvas.style.height = 'auto';
+        canvas.style.width = W + 'px';
+        canvas.style.height = H + 'px';
         ctx.scale(dpr, dpr);
 
         const allYears = members.map(m => m.birthYear);
@@ -386,9 +385,8 @@
             });
         });
 
-        // Hover tooltip
+        // Hover tooltip (position: fixed so nothing can clip it)
         const tooltip = document.getElementById('genTooltip');
-        const container = document.getElementById('genMap');
 
         canvas.addEventListener('mousemove', (e) => {
             const rect = canvas.getBoundingClientRect();
@@ -401,7 +399,7 @@
             for (const p of dotPositions) {
                 const dx = mx - p.x;
                 const dy = my - p.y;
-                if (dx * dx + dy * dy < (dotR + 4) * (dotR + 4)) {
+                if (dx * dx + dy * dy < (dotR + 5) * (dotR + 5)) {
                     hit = p;
                     break;
                 }
@@ -411,8 +409,8 @@
                 const m = hit.member;
                 const line = FAMILY_LINES[m.colorKey] || FAMILY_LINES.Yellow;
                 tooltip.style.display = 'block';
-                tooltip.style.left = (e.clientX - container.getBoundingClientRect().left + 12) + 'px';
-                tooltip.style.top = (e.clientY - container.getBoundingClientRect().top - 10) + 'px';
+                tooltip.style.left = (e.clientX + 14) + 'px';
+                tooltip.style.top = (e.clientY - 14) + 'px';
                 tooltip.innerHTML = `<strong>${esc(m.name)}</strong><br>${m.birthYear} &middot; Age ${m.age}<br><span style="color:${line.css}">${line.label} line</span><br><span style="color:${hit.gen.color}">${hit.gen.name}</span>`;
             } else {
                 tooltip.style.display = 'none';
