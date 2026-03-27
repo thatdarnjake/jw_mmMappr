@@ -281,7 +281,7 @@ header {
     background: var(--bg-warm);
     border-radius: 18px;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     border: 1px solid var(--border);
 }
 
@@ -290,6 +290,7 @@ header {
     top: 0; bottom: 0;
     border-radius: 18px;
     opacity: 0.15;
+    overflow: hidden;
 }
 
 .gen-person {
