@@ -59,6 +59,38 @@ const FAMILY_LINES = {
     Orange:  { label: "Dennis Faherty", css: "#ea580c", bg: "#fff7ed", border: "#fdba74" }
 };
 
+// Zodiac signs (month/day boundaries)
+const ZODIAC_SIGNS = [
+    { name: "Capricorn",   symbol: "\u2651", startM: 12, startD: 22, endM: 1,  endD: 19 },
+    { name: "Aquarius",    symbol: "\u2652", startM: 1,  startD: 20, endM: 2,  endD: 18 },
+    { name: "Pisces",      symbol: "\u2653", startM: 2,  startD: 19, endM: 3,  endD: 20 },
+    { name: "Aries",       symbol: "\u2648", startM: 3,  startD: 21, endM: 4,  endD: 19 },
+    { name: "Taurus",      symbol: "\u2649", startM: 4,  startD: 20, endM: 5,  endD: 20 },
+    { name: "Gemini",      symbol: "\u264A", startM: 5,  startD: 21, endM: 6,  endD: 20 },
+    { name: "Cancer",      symbol: "\u264B", startM: 6,  startD: 21, endM: 7,  endD: 22 },
+    { name: "Leo",         symbol: "\u264C", startM: 7,  startD: 23, endM: 8,  endD: 22 },
+    { name: "Virgo",       symbol: "\u264D", startM: 8,  startD: 23, endM: 9,  endD: 22 },
+    { name: "Libra",       symbol: "\u264E", startM: 9,  startD: 23, endM: 10, endD: 22 },
+    { name: "Scorpio",     symbol: "\u264F", startM: 10, startD: 23, endM: 11, endD: 21 },
+    { name: "Sagittarius", symbol: "\u2650", startM: 11, startD: 22, endM: 12, endD: 21 }
+];
+
+// Chinese zodiac (cycle starts at known Rat year: 1924)
+const CHINESE_ZODIAC = [
+    { name: "Rat",     emoji: "\uD83D\uDC00" },
+    { name: "Ox",      emoji: "\uD83D\uDC02" },
+    { name: "Tiger",   emoji: "\uD83D\uDC05" },
+    { name: "Rabbit",  emoji: "\uD83D\uDC07" },
+    { name: "Dragon",  emoji: "\uD83D\uDC09" },
+    { name: "Snake",   emoji: "\uD83D\uDC0D" },
+    { name: "Horse",   emoji: "\uD83D\uDC0E" },
+    { name: "Goat",    emoji: "\uD83D\uDC10" },
+    { name: "Monkey",  emoji: "\uD83D\uDC12" },
+    { name: "Rooster", emoji: "\uD83D\uDC13" },
+    { name: "Dog",     emoji: "\uD83D\uDC15" },
+    { name: "Pig",     emoji: "\uD83D\uDC16" }
+];
+
 // Generation definitions
 const GENERATIONS = [
     { name: "Greatest Gen", start: 1901, end: 1927, color: "#78716c" },

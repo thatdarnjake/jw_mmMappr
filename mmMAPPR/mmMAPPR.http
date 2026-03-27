@@ -1,0 +1,6 @@
+@mmMAPPR_HostAddress = http://localhost:5064
+
+GET {{mmMAPPR_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -16,7 +16,9 @@
             birthYear: bd.getFullYear(),
             age: calcAge(bd),
             dayOfYear: dayOfYear(bd.getMonth(), bd.getDate()),
-            colorKey: d.color.charAt(0).toUpperCase() + d.color.slice(1).toLowerCase()
+            colorKey: d.color.charAt(0).toUpperCase() + d.color.slice(1).toLowerCase(),
+            zodiac: getZodiac(bd.getMonth(), bd.getDate()),
+            chineseZodiac: getChineseZodiac(bd.getFullYear())
         };
     });
 
@@ -37,6 +39,28 @@
 
     function formatBdayShort(m) {
         return `${MONTHS[m.month]} ${m.day}`;
+    }
+
+    function getZodiac(month, day) {
+        // month is 0-indexed, zodiac data uses 1-indexed
+        const m = month + 1;
+        for (const z of ZODIAC_SIGNS) {
+            if (z.startM === z.endM) {
+                if (m === z.startM && day >= z.startD && day <= z.endD) return z;
+            } else if (z.startM > z.endM) {
+                // Wraps year (Capricorn: Dec 22 - Jan 19)
+                if ((m === z.startM && day >= z.startD) || (m === z.endM && day <= z.endD)) return z;
+            } else {
+                if ((m === z.startM && day >= z.startD) || (m === z.endM && day <= z.endD)) return z;
+            }
+        }
+        return ZODIAC_SIGNS[0]; // fallback
+    }
+
+    function getChineseZodiac(year) {
+        // 1924 is a Rat year (index 0)
+        const idx = ((year - 1924) % 12 + 12) % 12;
+        return CHINESE_ZODIAC[idx];
     }
 
     // ---- Legend ----
@@ -98,39 +122,98 @@
 
     // ---- Analytics ----
     function renderAnalytics() {
-        // Most popular month
+        // --- Top 3 months ---
         const monthCounts = {};
-        members.forEach(m => {
-            monthCounts[m.month] = (monthCounts[m.month] || 0) + 1;
-        });
-        const topMonth = Object.entries(monthCounts).sort((a, b) => b[1] - a[1])[0];
-        document.getElementById('popularMonth').textContent = MONTHS[topMonth[0]];
+        members.forEach(m => { monthCounts[m.month] = (monthCounts[m.month] || 0) + 1; });
+        const topMonths = Object.entries(monthCounts).sort((a, b) => b[1] - a[1]).slice(0, 3);
+        document.getElementById('popularMonth').innerHTML = topMonths
+            .map((e, i) => `<span style="font-size:${i === 0 ? '1.4rem' : '1rem'}">${MONTHS[e[0]]}</span>`).join(' &middot; ');
         document.getElementById('popularMonthDetail').textContent =
-            `${topMonth[1]} birthdays — ${Object.keys(monthCounts).length} of 12 months represented`;
+            topMonths.map(e => `${MONTHS[e[0]]}: ${e[1]}`).join(', ') +
+            ` — ${Object.keys(monthCounts).length} of 12 months represented`;
 
-        // Closest birthdays (by day-of-year, wrapping)
-        let closestPair = null;
-        let closestDist = 366;
-        for (let i = 0; i < members.length; i++) {
-            for (let j = i + 1; j < members.length; j++) {
-                let diff = Math.abs(members[i].dayOfYear - members[j].dayOfYear);
+        // --- Top 3 zodiac signs ---
+        const zodiacCounts = {};
+        members.forEach(m => {
+            const z = m.zodiac.name;
+            zodiacCounts[z] = zodiacCounts[z] || { sign: m.zodiac, count: 0 };
+            zodiacCounts[z].count++;
+        });
+        const topZodiac = Object.values(zodiacCounts).sort((a, b) => b.count - a.count).slice(0, 3);
+        document.getElementById('topZodiac').innerHTML = topZodiac
+            .map((z, i) => `<span style="font-size:${i === 0 ? '1.4rem' : '1rem'}">${z.sign.symbol} ${z.sign.name}</span>`).join(' &middot; ');
+        document.getElementById('zodiacDetail').textContent =
+            topZodiac.map(z => `${z.sign.name}: ${z.count}`).join(', ');
+
+        // --- Top 3 Chinese zodiac animals ---
+        const czCounts = {};
+        members.forEach(m => {
+            const c = m.chineseZodiac.name;
+            czCounts[c] = czCounts[c] || { animal: m.chineseZodiac, count: 0 };
+            czCounts[c].count++;
+        });
+        const topCZ = Object.values(czCounts).sort((a, b) => b.count - a.count).slice(0, 3);
+        document.getElementById('topChinese').innerHTML = topCZ
+            .map((c, i) => `<span style="font-size:${i === 0 ? '1.4rem' : '1rem'}">${c.animal.emoji} ${c.animal.name}</span>`).join(' &middot; ');
+        document.getElementById('chineseDetail').textContent =
+            topCZ.map(c => `${c.animal.name}: ${c.count}`).join(', ');
+
+        // --- Top 3 closest birthdays (cluster-deduped) ---
+        // Group members by dayOfYear so same-date people form one cluster
+        const dateGroups = {};
+        members.forEach(m => {
+            if (!dateGroups[m.dayOfYear]) dateGroups[m.dayOfYear] = [];
+            dateGroups[m.dayOfYear].push(m);
+        });
+        const uniqueDates = Object.keys(dateGroups).map(Number).sort((a, b) => a - b);
+
+        // Find closest distinct-date pairs
+        const datePairs = [];
+        for (let i = 0; i < uniqueDates.length; i++) {
+            for (let j = i + 1; j < uniqueDates.length; j++) {
+                let diff = Math.abs(uniqueDates[i] - uniqueDates[j]);
                 diff = Math.min(diff, 366 - diff);
-                if (diff < closestDist) {
-                    closestDist = diff;
-                    closestPair = [members[i], members[j]];
-                }
+                datePairs.push({
+                    dist: diff,
+                    groupA: dateGroups[uniqueDates[i]],
+                    groupB: dateGroups[uniqueDates[j]]
+                });
             }
         }
-        if (closestPair) {
-            document.getElementById('closestBdays').textContent =
-                `${closestPair[0].name} & ${closestPair[1].name}`;
-            document.getElementById('closestDetail').textContent =
-                closestDist === 0
-                    ? `Same birthday! ${formatBdayShort(closestPair[0])}`
-                    : `Only ${closestDist} day${closestDist > 1 ? 's' : ''} apart (${formatBdayShort(closestPair[0])} & ${formatBdayShort(closestPair[1])})`;
-        }
+        // Also include same-date clusters (dist = 0) where 2+ people share a date
+        uniqueDates.forEach(d => {
+            if (dateGroups[d].length > 1) {
+                datePairs.push({
+                    dist: 0,
+                    groupA: dateGroups[d],
+                    groupB: null // same-date cluster
+                });
+            }
+        });
 
-        // Loneliest birthday
+        datePairs.sort((a, b) => a.dist - b.dist);
+        const top3Closest = datePairs.slice(0, 3);
+
+        const closestLines = top3Closest.map(p => {
+            if (p.dist === 0 && !p.groupB) {
+                // Same-date cluster
+                const names = p.groupA.map(m => m.name).join(', ');
+                return `${names} — same day! (${formatBdayShort(p.groupA[0])})`;
+            } else if (p.dist === 0) {
+                const allNames = [...p.groupA, ...p.groupB].map(m => m.name).join(', ');
+                return `${allNames} — same day!`;
+            } else {
+                const namesA = p.groupA.map(m => m.name).join(', ');
+                const namesB = p.groupB.map(m => m.name).join(', ');
+                return `${namesA} & ${namesB} — ${p.dist}d apart`;
+            }
+        });
+
+        document.getElementById('closestBdays').innerHTML = closestLines[0] || '';
+        document.getElementById('closestDetail').innerHTML = closestLines.slice(1)
+            .map(l => `<div style="margin-top:4px">${esc(l)}</div>`).join('');
+
+        // --- Loneliest birthday ---
         let loneliestMember = null;
         let maxMinDist = 0;
         members.forEach(m => {
@@ -152,7 +235,7 @@
                 `${formatBdayShort(loneliestMember)} — nearest family birthday is ${maxMinDist} days away`;
         }
 
-        // Member count
+        // --- Member count ---
         document.getElementById('memberCount').textContent = members.length;
         const genCounts = {};
         members.forEach(m => { genCounts[m.gen] = (genCounts[m.gen] || 0) + 1; });
@@ -207,8 +290,9 @@
 
         const cx = size / 2;
         const cy = size / 2;
-        const outerR = 280;
-        const innerR = 180;
+        const zodiacR = 320;   // outermost ring for zodiac
+        const outerR = 270;
+        const innerR = 175;
         const dotR = 6;
 
         // Background
@@ -233,9 +317,9 @@
             ctx.lineWidth = 0.5;
             ctx.stroke();
 
-            // Month label
+            // Month label (between month arc and zodiac arc)
             const midAngle = (startAngle + endAngle) / 2;
-            const labelR = outerR + 18;
+            const labelR = zodiacR + 16;
             const lx = cx + Math.cos(midAngle) * labelR;
             const ly = cy + Math.sin(midAngle) * labelR;
             ctx.save();
@@ -248,6 +332,40 @@
             ctx.restore();
 
             dayOffset += days;
+        });
+
+        // Zodiac sign arcs (outer ring)
+        const zodiacColors = ['#e8d5b7','#d5c4a1','#e8d5b7','#d5c4a1','#e8d5b7','#d5c4a1',
+                              '#e8d5b7','#d5c4a1','#e8d5b7','#d5c4a1','#e8d5b7','#d5c4a1'];
+        ZODIAC_SIGNS.forEach((z, zi) => {
+            const startDOY = dayOfYear(z.startM - 1, z.startD);
+            let endDOY = dayOfYear(z.endM - 1, z.endD);
+            if (endDOY < startDOY) endDOY += 366; // wraps (Capricorn)
+
+            const startAng = (startDOY / totalDays) * Math.PI * 2 - Math.PI / 2;
+            const endAng = ((endDOY % 366) === startDOY ? startDOY + 30 : endDOY) / totalDays * Math.PI * 2 - Math.PI / 2;
+
+            // Draw arc
+            ctx.beginPath();
+            ctx.arc(cx, cy, zodiacR, startAng, endAng);
+            ctx.arc(cx, cy, outerR + 4, endAng, startAng, true);
+            ctx.closePath();
+            ctx.fillStyle = zodiacColors[zi];
+            ctx.fill();
+            ctx.strokeStyle = '#c4b99a';
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+
+            // Zodiac symbol label
+            const midAng = (startAng + endAng) / 2;
+            const symR = (zodiacR + outerR + 4) / 2;
+            const sx = cx + Math.cos(midAng) * symR;
+            const sy = cy + Math.sin(midAng) * symR;
+            ctx.fillStyle = '#6b5c3e';
+            ctx.font = '14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(z.symbol, sx, sy);
         });
 
         // Center text
@@ -312,7 +430,7 @@
                 tooltip.style.display = 'block';
                 tooltip.style.left = (e.clientX - canvas.closest('.calendar-ring-container').getBoundingClientRect().left + 12) + 'px';
                 tooltip.style.top = (e.clientY - canvas.closest('.calendar-ring-container').getBoundingClientRect().top - 10) + 'px';
-                tooltip.innerHTML = `<strong>${esc(hit.member.name)}</strong><br>${formatBdayShort(hit.member)} (age ${hit.member.age})<br><span style="color:${line.css}">${line.label} line</span>`;
+                tooltip.innerHTML = `<strong>${esc(hit.member.name)}</strong><br>${formatBdayShort(hit.member)} (age ${hit.member.age})<br>${hit.member.zodiac.symbol} ${hit.member.zodiac.name} &middot; ${hit.member.chineseZodiac.emoji} ${hit.member.chineseZodiac.name}<br><span style="color:${line.css}">${line.label} line</span>`;
             } else {
                 tooltip.style.display = 'none';
             }
@@ -346,6 +464,8 @@
                 <td class="td-name">${esc(m.name)}</td>
                 <td>${formatDate(m.bd)}</td>
                 <td>${m.age >= 0 ? m.age : 'TBD'}</td>
+                <td>${m.zodiac.symbol} ${esc(m.zodiac.name)}</td>
+                <td>${m.chineseZodiac.emoji} ${esc(m.chineseZodiac.name)}</td>
                 <td>
                     <div class="td-line">
                         <span class="td-line-dot" style="background:${line.css}"></span>
