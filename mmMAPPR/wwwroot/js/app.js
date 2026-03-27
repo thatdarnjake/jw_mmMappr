@@ -290,124 +290,228 @@
 
         const cx = size / 2;
         const cy = size / 2;
-        const zodiacR = 320;   // outermost ring for zodiac
+        const zodiacR = 320;
         const outerR = 270;
         const innerR = 175;
         const dotR = 6;
-
-        // Background
-        ctx.clearRect(0, 0, size, size);
-
-        // Month arcs
         const monthDays = [31,29,31,30,31,30,31,31,30,31,30,31];
         const totalDays = 366;
-        let dayOffset = 0;
 
-        monthDays.forEach((days, i) => {
-            const startAngle = (dayOffset / totalDays) * Math.PI * 2 - Math.PI / 2;
-            const endAngle = ((dayOffset + days) / totalDays) * Math.PI * 2 - Math.PI / 2;
+        // Pre-compute stable jitter per member (seeded by index)
+        const jitters = members.map((_, i) => ((Math.sin(i * 127.1 + 311.7) * 43758.5453) % 1) * 16 - 8);
 
-            ctx.beginPath();
-            ctx.arc(cx, cy, outerR, startAngle, endAngle);
-            ctx.arc(cx, cy, innerR, endAngle, startAngle, true);
-            ctx.closePath();
-            ctx.fillStyle = i % 2 === 0 ? '#f0ebe3' : '#e8e3da';
-            ctx.fill();
-            ctx.strokeStyle = '#d4cfc4';
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-
-            // Month label (between month arc and zodiac arc)
-            const midAngle = (startAngle + endAngle) / 2;
-            const labelR = zodiacR + 16;
-            const lx = cx + Math.cos(midAngle) * labelR;
-            const ly = cy + Math.sin(midAngle) * labelR;
-            ctx.save();
-            ctx.translate(lx, ly);
-            ctx.rotate(midAngle + Math.PI / 2);
-            ctx.fillStyle = '#5a5a72';
-            ctx.font = '500 11px Inter, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(MONTHS[i].slice(0, 3).toUpperCase(), 0, 0);
-            ctx.restore();
-
-            dayOffset += days;
+        // Pre-compute member positions
+        const positions = members.map((m, i) => {
+            const angle = (m.dayOfYear / totalDays) * Math.PI * 2 - Math.PI / 2;
+            const genOffset = m.gen === 0 ? 0.5 : m.gen === 1 ? 0.3 : m.gen === 2 ? 0.6 : 0.85;
+            const r = innerR + (outerR - innerR) * genOffset + jitters[i];
+            return {
+                x: cx + Math.cos(angle) * r,
+                y: cy + Math.sin(angle) * r,
+                member: m
+            };
         });
 
-        // Zodiac sign arcs (outer ring)
-        const zodiacColors = ['#e8d5b7','#d5c4a1','#e8d5b7','#d5c4a1','#e8d5b7','#d5c4a1',
-                              '#e8d5b7','#d5c4a1','#e8d5b7','#d5c4a1','#e8d5b7','#d5c4a1'];
-        ZODIAC_SIGNS.forEach((z, zi) => {
+        // Pre-compute zodiac arc geometries for hit detection
+        const zodiacArcs = ZODIAC_SIGNS.map(z => {
             const startDOY = dayOfYear(z.startM - 1, z.startD);
             let endDOY = dayOfYear(z.endM - 1, z.endD);
-            if (endDOY < startDOY) endDOY += 366; // wraps (Capricorn)
-
+            if (endDOY < startDOY) endDOY += 366;
             const startAng = (startDOY / totalDays) * Math.PI * 2 - Math.PI / 2;
-            const endAng = ((endDOY % 366) === startDOY ? startDOY + 30 : endDOY) / totalDays * Math.PI * 2 - Math.PI / 2;
-
-            // Draw arc
-            ctx.beginPath();
-            ctx.arc(cx, cy, zodiacR, startAng, endAng);
-            ctx.arc(cx, cy, outerR + 4, endAng, startAng, true);
-            ctx.closePath();
-            ctx.fillStyle = zodiacColors[zi];
-            ctx.fill();
-            ctx.strokeStyle = '#c4b99a';
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-
-            // Zodiac symbol label
-            const midAng = (startAng + endAng) / 2;
-            const symR = (zodiacR + outerR + 4) / 2;
-            const sx = cx + Math.cos(midAng) * symR;
-            const sy = cy + Math.sin(midAng) * symR;
-            ctx.fillStyle = '#6b5c3e';
-            ctx.font = '14px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(z.symbol, sx, sy);
+            const endAng = (endDOY / totalDays) * Math.PI * 2 - Math.PI / 2;
+            return { sign: z, startAng, endAng, startDOY, endDOY };
         });
 
-        // Center text
-        ctx.fillStyle = '#1a1a2e';
-        ctx.font = '600 22px Cinzel, Georgia, serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('Faherty', cx, cy - 12);
-        ctx.font = '400 14px Cormorant Garamond, Georgia, serif';
-        ctx.fillStyle = '#5a5a72';
-        ctx.fillText(`${members.length} Birthdays`, cx, cy + 12);
-        ctx.font = 'italic 12px Cormorant Garamond, Georgia, serif';
-        ctx.fillStyle = '#8a8aa0';
-        ctx.fillText('Around the Year', cx, cy + 30);
+        // Mom Mom's birthday marker
+        const momMom = members.find(m => m.name === 'Mom Mom');
 
-        // Plot birthdays
-        const positions = [];
-        members.forEach(m => {
-            const angle = (m.dayOfYear / totalDays) * Math.PI * 2 - Math.PI / 2;
-            const line = FAMILY_LINES[m.colorKey] || FAMILY_LINES.Yellow;
+        // Lunar New Year 2026: Feb 17
+        const lnyDOY = dayOfYear(1, 17); // Feb 17
 
-            // Spread dots between innerR and outerR based on generation
-            const genOffset = m.gen === 0 ? 0.5 : m.gen === 1 ? 0.3 : m.gen === 2 ? 0.6 : 0.85;
-            const r = innerR + (outerR - innerR) * genOffset;
+        // --- Draw function (called on hover changes) ---
+        let highlightZodiacIdx = -1;
 
-            // Jitter to reduce overlap
-            const jitter = (Math.random() - 0.5) * 16;
-            const px = cx + Math.cos(angle) * (r + jitter);
-            const py = cy + Math.sin(angle) * (r + jitter);
+        function draw() {
+            ctx.clearRect(0, 0, size, size);
 
+            // Month arcs
+            let dayOff = 0;
+            monthDays.forEach((days, i) => {
+                const sa = (dayOff / totalDays) * Math.PI * 2 - Math.PI / 2;
+                const ea = ((dayOff + days) / totalDays) * Math.PI * 2 - Math.PI / 2;
+
+                ctx.beginPath();
+                ctx.arc(cx, cy, outerR, sa, ea);
+                ctx.arc(cx, cy, innerR, ea, sa, true);
+                ctx.closePath();
+                ctx.fillStyle = i % 2 === 0 ? '#f0ebe3' : '#e8e3da';
+                ctx.fill();
+                ctx.strokeStyle = '#d4cfc4';
+                ctx.lineWidth = 0.5;
+                ctx.stroke();
+
+                // Month label
+                const mid = (sa + ea) / 2;
+                const lr = zodiacR + 16;
+                ctx.save();
+                ctx.translate(cx + Math.cos(mid) * lr, cy + Math.sin(mid) * lr);
+                ctx.rotate(mid + Math.PI / 2);
+                ctx.fillStyle = '#5a5a72';
+                ctx.font = '500 11px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(MONTHS[i].slice(0, 3).toUpperCase(), 0, 0);
+                ctx.restore();
+
+                dayOff += days;
+            });
+
+            // Zodiac arcs
+            zodiacArcs.forEach((za, zi) => {
+                const isHl = zi === highlightZodiacIdx;
+                ctx.beginPath();
+                ctx.arc(cx, cy, zodiacR, za.startAng, za.endAng);
+                ctx.arc(cx, cy, outerR + 4, za.endAng, za.startAng, true);
+                ctx.closePath();
+                ctx.fillStyle = isHl ? '#d4b896' : (zi % 2 === 0 ? '#e8d5b7' : '#d5c4a1');
+                ctx.fill();
+                ctx.strokeStyle = isHl ? '#a08050' : '#c4b99a';
+                ctx.lineWidth = isHl ? 1.5 : 0.5;
+                ctx.stroke();
+
+                // Symbol
+                const mid = (za.startAng + za.endAng) / 2;
+                const symR = (zodiacR + outerR + 4) / 2;
+                ctx.fillStyle = isHl ? '#4a3a20' : '#6b5c3e';
+                ctx.font = isHl ? 'bold 16px sans-serif' : '14px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(za.sign.symbol, cx + Math.cos(mid) * symR, cy + Math.sin(mid) * symR);
+
+                // Date labels at start and end of each arc
+                // Start date
+                const sdR = zodiacR + 4;
+                ctx.save();
+                ctx.translate(cx + Math.cos(za.startAng) * sdR, cy + Math.sin(za.startAng) * sdR);
+                ctx.rotate(za.startAng + Math.PI / 2);
+                ctx.fillStyle = '#9a8a70';
+                ctx.font = '500 7px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                const sLabel = `${za.sign.startM}/${za.sign.startD}`;
+                ctx.fillText(sLabel, 0, 0);
+                ctx.restore();
+            });
+
+            // Lunar New Year marker
+            const lnyAng = (lnyDOY / totalDays) * Math.PI * 2 - Math.PI / 2;
+            const lnyR1 = outerR + 2;
+            const lnyR2 = zodiacR + 2;
             ctx.beginPath();
-            ctx.arc(px, py, dotR, 0, Math.PI * 2);
-            ctx.fillStyle = line.css;
-            ctx.fill();
-            ctx.strokeStyle = 'white';
+            ctx.moveTo(cx + Math.cos(lnyAng) * lnyR1, cy + Math.sin(lnyAng) * lnyR1);
+            ctx.lineTo(cx + Math.cos(lnyAng) * lnyR2, cy + Math.sin(lnyAng) * lnyR2);
+            ctx.strokeStyle = '#dc2626';
             ctx.lineWidth = 2;
             ctx.stroke();
+            // LNY label
+            const lnyLx = cx + Math.cos(lnyAng) * (zodiacR + 32);
+            const lnyLy = cy + Math.sin(lnyAng) * (zodiacR + 32);
+            ctx.save();
+            ctx.translate(lnyLx, lnyLy);
+            ctx.rotate(lnyAng + Math.PI / 2);
+            ctx.fillStyle = '#dc2626';
+            ctx.font = 'bold 8px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('LNY 2026', 0, 0);
+            ctx.restore();
 
-            positions.push({ x: px, y: py, member: m });
-        });
+            // Center text
+            ctx.textBaseline = 'alphabetic';
+            ctx.fillStyle = '#1a1a2e';
+            ctx.font = '600 22px Cinzel, Georgia, serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Faherty', cx, cy - 12);
+            ctx.font = '400 14px Cormorant Garamond, Georgia, serif';
+            ctx.fillStyle = '#5a5a72';
+            ctx.fillText(`${members.length} Birthdays`, cx, cy + 12);
+            ctx.font = 'italic 12px Cormorant Garamond, Georgia, serif';
+            ctx.fillStyle = '#8a8aa0';
+            ctx.fillText('Around the Year', cx, cy + 30);
 
-        // Tooltip on hover
+            // If zodiac highlighted, show sign name + dates in center
+            if (highlightZodiacIdx >= 0) {
+                const hz = ZODIAC_SIGNS[highlightZodiacIdx];
+                const hMembers = members.filter(m => m.zodiac.name === hz.name);
+                ctx.font = '500 13px Inter, sans-serif';
+                ctx.fillStyle = '#4a3a20';
+                ctx.fillText(`${hz.symbol} ${hz.name}`, cx, cy + 52);
+                ctx.font = '400 10px Inter, sans-serif';
+                ctx.fillStyle = '#8a8aa0';
+                ctx.fillText(`${MONTHS[hz.startM-1]} ${hz.startD} – ${MONTHS[hz.endM-1]} ${hz.endD}`, cx, cy + 66);
+                ctx.font = '400 10px Inter, sans-serif';
+                ctx.fillStyle = '#5a5a72';
+                ctx.fillText(`${hMembers.length} member${hMembers.length !== 1 ? 's' : ''}`, cx, cy + 80);
+            }
+
+            // Plot birthday dots
+            const hlSign = highlightZodiacIdx >= 0 ? ZODIAC_SIGNS[highlightZodiacIdx].name : null;
+
+            positions.forEach(p => {
+                const m = p.member;
+                const line = FAMILY_LINES[m.colorKey] || FAMILY_LINES.Yellow;
+                const isMomMom = m.name === 'Mom Mom';
+                const isHighlighted = hlSign && m.zodiac.name === hlSign;
+                const isDimmed = hlSign && !isHighlighted;
+
+                const r = isDimmed ? dotR - 1 : (isHighlighted ? dotR + 3 : dotR);
+                const alpha = isDimmed ? 0.2 : 1;
+
+                ctx.globalAlpha = alpha;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+                ctx.fillStyle = line.css;
+                ctx.fill();
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // Mom Mom special marker - gold ring + star
+                if (isMomMom) {
+                    ctx.globalAlpha = 1;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, dotR + 5, 0, Math.PI * 2);
+                    ctx.strokeStyle = '#daa520';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    // Small label
+                    ctx.fillStyle = '#b8860b';
+                    ctx.font = 'bold 8px Inter, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'bottom';
+                    ctx.fillText('Mom Mom', p.x, p.y - dotR - 7);
+                    ctx.textBaseline = 'alphabetic';
+                }
+
+                ctx.globalAlpha = 1;
+
+                // Show name labels when zodiac highlighted
+                if (isHighlighted) {
+                    ctx.fillStyle = '#1a1a2e';
+                    ctx.font = '500 8px Inter, sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'bottom';
+                    ctx.fillText(m.name.split(' ')[0], p.x, p.y - r - 3);
+                    ctx.textBaseline = 'alphabetic';
+                }
+            });
+        }
+
+        draw();
+
+        // --- Hover interaction ---
         const tooltip = document.getElementById('ringTooltip');
+        const containerEl = canvas.closest('.calendar-ring-container');
+
         canvas.addEventListener('mousemove', (e) => {
             const rect = canvas.getBoundingClientRect();
             const scaleX = size / rect.width;
@@ -415,28 +519,81 @@
             const mx = (e.clientX - rect.left) * scaleX;
             const my = (e.clientY - rect.top) * scaleY;
 
-            let hit = null;
+            // Check birthday dot hit
+            let dotHit = null;
             for (const p of positions) {
                 const dx = mx - p.x;
                 const dy = my - p.y;
                 if (dx * dx + dy * dy < (dotR + 4) * (dotR + 4)) {
-                    hit = p;
+                    dotHit = p;
                     break;
                 }
             }
 
-            if (hit) {
-                const line = FAMILY_LINES[hit.member.colorKey] || FAMILY_LINES.Yellow;
+            if (dotHit) {
+                const line = FAMILY_LINES[dotHit.member.colorKey] || FAMILY_LINES.Yellow;
                 tooltip.style.display = 'block';
-                tooltip.style.left = (e.clientX - canvas.closest('.calendar-ring-container').getBoundingClientRect().left + 12) + 'px';
-                tooltip.style.top = (e.clientY - canvas.closest('.calendar-ring-container').getBoundingClientRect().top - 10) + 'px';
-                tooltip.innerHTML = `<strong>${esc(hit.member.name)}</strong><br>${formatBdayShort(hit.member)} (age ${hit.member.age})<br>${hit.member.zodiac.symbol} ${hit.member.zodiac.name} &middot; ${hit.member.chineseZodiac.emoji} ${hit.member.chineseZodiac.name}<br><span style="color:${line.css}">${line.label} line</span>`;
+                tooltip.style.left = (e.clientX - containerEl.getBoundingClientRect().left + 12) + 'px';
+                tooltip.style.top = (e.clientY - containerEl.getBoundingClientRect().top - 10) + 'px';
+                tooltip.innerHTML = `<strong>${esc(dotHit.member.name)}</strong><br>${formatBdayShort(dotHit.member)} (age ${dotHit.member.age})<br>${dotHit.member.zodiac.symbol} ${dotHit.member.zodiac.name} &middot; ${dotHit.member.chineseZodiac.emoji} ${dotHit.member.chineseZodiac.name}<br><span style="color:${line.css}">${line.label} line</span>`;
+                return;
+            }
+
+            tooltip.style.display = 'none';
+
+            // Check zodiac arc hit
+            const dx = mx - cx;
+            const dy = my - cy;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist >= outerR + 4 && dist <= zodiacR) {
+                let angle = Math.atan2(dy, dx);
+                // Normalize to match our ring coordinate system
+                let prevIdx = highlightZodiacIdx;
+                highlightZodiacIdx = -1;
+
+                for (let i = 0; i < zodiacArcs.length; i++) {
+                    const za = zodiacArcs[i];
+                    // Normalize angles for comparison
+                    let a = angle;
+                    let s = za.startAng;
+                    let en = za.endAng;
+                    // Handle wrapping
+                    if (en < s) {
+                        if (a < s) a += Math.PI * 2;
+                        en += Math.PI * 2;
+                    }
+                    if (a >= s && a <= en) {
+                        highlightZodiacIdx = i;
+                        break;
+                    }
+                }
+
+                if (highlightZodiacIdx !== prevIdx) draw();
+
+                if (highlightZodiacIdx >= 0) {
+                    const hz = ZODIAC_SIGNS[highlightZodiacIdx];
+                    const hMembers = members.filter(m => m.zodiac.name === hz.name);
+                    tooltip.style.display = 'block';
+                    tooltip.style.left = (e.clientX - containerEl.getBoundingClientRect().left + 12) + 'px';
+                    tooltip.style.top = (e.clientY - containerEl.getBoundingClientRect().top - 10) + 'px';
+                    tooltip.innerHTML = `<strong>${hz.symbol} ${hz.name}</strong><br>${MONTHS[hz.startM-1]} ${hz.startD} – ${MONTHS[hz.endM-1]} ${hz.endD}<br><br>${hMembers.map(m => esc(m.name)).join('<br>')}`;
+                }
             } else {
-                tooltip.style.display = 'none';
+                if (highlightZodiacIdx !== -1) {
+                    highlightZodiacIdx = -1;
+                    draw();
+                }
             }
         });
 
-        canvas.addEventListener('mouseleave', () => { tooltip.style.display = 'none'; });
+        canvas.addEventListener('mouseleave', () => {
+            tooltip.style.display = 'none';
+            if (highlightZodiacIdx !== -1) {
+                highlightZodiacIdx = -1;
+                draw();
+            }
+        });
     }
 
     // ---- Birthday Table ----
