@@ -1,6 +1,7 @@
 // mmMAPPR Family Data - extracted from Faherty.xlsx
 const FAMILY_DATA = [
-    { name: "Mom Mom", birthday: "1920-02-15", gen: 0, color: "Magenta" },
+    { name: "Thomas Faherty", birthday: "1913-02-03", gen: 0, color: "Purple" },
+    { name: "Mom Mom", birthday: "1920-02-15", gen: 0, color: "Purple" },
     { name: "Tom Faherty", birthday: "1952-03-01", gen: 1, color: "Yellow" },
     { name: "Terry Faherty", birthday: "1954-04-11", gen: 1, color: "Red" },
     { name: "Tim Faherty", birthday: "1955-05-18", gen: 1, color: "Green" },
@@ -51,7 +52,7 @@ const FAMILY_DATA = [
 
 // Family line display config
 const FAMILY_LINES = {
-    Magenta: { label: "Mom Mom", css: "#c026d3", bg: "#fdf4ff", border: "#f0abfc" },
+    Purple:  { label: "Grandparents", css: "#7c3aed", bg: "#f5f3ff", border: "#c4b5fd" },
     Yellow:  { label: "Tom Faherty", css: "#ca8a04", bg: "#fefce8", border: "#fde047" },
     Red:     { label: "Terry Faherty", css: "#dc2626", bg: "#fef2f2", border: "#fca5a5" },
     Green:   { label: "Tim Faherty", css: "#16a34a", bg: "#f0fdf4", border: "#86efac" },
