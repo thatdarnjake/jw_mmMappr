@@ -12,7 +12,7 @@
     --accent-bg: #e8f5ee;
     --gold: #b8860b;
     --gold-light: #daa520;
-    --font-display: 'Cinzel', 'Georgia', serif;
+    --font-display: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-accent: 'Cormorant Garamond', 'Georgia', serif;
     --radius: 8px;

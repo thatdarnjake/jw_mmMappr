@@ -428,7 +428,7 @@
             // Center text
             ctx.textBaseline = 'alphabetic';
             ctx.fillStyle = '#1a1a2e';
-            ctx.font = '600 22px Cinzel, Georgia, serif';
+            ctx.font = '600 22px Space Grotesk, sans-serif';
             ctx.textAlign = 'center';
             ctx.fillText('Faherty', cx, cy - 12);
             ctx.font = '400 14px Cormorant Garamond, Georgia, serif';
@@ -548,21 +548,20 @@
 
             if (dist >= outerR + 4 && dist <= zodiacR) {
                 let angle = Math.atan2(dy, dx);
-                // Normalize to match our ring coordinate system
+                // Normalize atan2 [-PI,PI] to arc range [-PI/2, 3PI/2)
+                if (angle < -Math.PI / 2) angle += Math.PI * 2;
+
                 let prevIdx = highlightZodiacIdx;
                 highlightZodiacIdx = -1;
 
                 for (let i = 0; i < zodiacArcs.length; i++) {
                     const za = zodiacArcs[i];
-                    // Normalize angles for comparison
-                    let a = angle;
                     let s = za.startAng;
                     let en = za.endAng;
-                    // Handle wrapping
-                    if (en < s) {
-                        if (a < s) a += Math.PI * 2;
-                        en += Math.PI * 2;
-                    }
+                    // Handle Capricorn wrapping past top of ring
+                    if (en < s) en += Math.PI * 2;
+                    let a = angle;
+                    if (a < s && s > Math.PI) a += Math.PI * 2;
                     if (a >= s && a <= en) {
                         highlightZodiacIdx = i;
                         break;
