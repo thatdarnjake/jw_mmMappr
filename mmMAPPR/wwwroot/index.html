@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mmMAPPR</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Celtic knot border top -->
+    <div class="celtic-border"></div>
+
+    <header>
+        <div class="header-inner">
+            <div class="logo-group">
+                <h1 class="logo">mmMAPPR</h1>
+                <p class="subtitle">The Faherty Family Birthday Chronicle</p>
+            </div>
+            <div class="legend" id="legend"></div>
+        </div>
+    </header>
+
+    <!-- Upcoming birthdays spotlight -->
+    <section class="spotlight" id="spotlight">
+        <div class="spotlight-inner"></div>
+    </section>
+
+    <!-- Analytics cards -->
+    <section class="analytics">
+        <div class="analytics-grid" id="analyticsGrid">
+            <div class="card" id="cardPopularMonth">
+                <div class="card-label">Most Popular Month</div>
+                <div class="card-value" id="popularMonth"></div>
+                <div class="card-detail" id="popularMonthDetail"></div>
+            </div>
+            <div class="card" id="cardClosest">
+                <div class="card-label">Closest Birthdays</div>
+                <div class="card-value" id="closestBdays"></div>
+                <div class="card-detail" id="closestDetail"></div>
+            </div>
+            <div class="card" id="cardLoneliest">
+                <div class="card-label">Loneliest Birthday</div>
+                <div class="card-value" id="loneliestBday"></div>
+                <div class="card-detail" id="loneliestDetail"></div>
+            </div>
+            <div class="card" id="cardCount">
+                <div class="card-label">Family Members</div>
+                <div class="card-value" id="memberCount"></div>
+                <div class="card-detail" id="countDetail"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Generation map -->
+    <section class="section">
+        <h2 class="section-title">Generation Map</h2>
+        <p class="section-subtitle">Where the Faherty family falls across modern generations</p>
+        <div class="gen-map" id="genMap"></div>
+    </section>
+
+    <!-- Birthday calendar wheel -->
+    <section class="section">
+        <h2 class="section-title">The Year at a Glance</h2>
+        <p class="section-subtitle">Every birthday mapped around the calendar year</p>
+        <div class="calendar-ring-container">
+            <canvas id="calendarRing" width="700" height="700"></canvas>
+            <div class="ring-tooltip" id="ringTooltip" style="display:none;"></div>
+        </div>
+    </section>
+
+    <!-- All birthdays table -->
+    <section class="section">
+        <h2 class="section-title">All Birthdays</h2>
+        <p class="section-subtitle">Sorted by date in the year &mdash; coloured by family line</p>
+        <div class="table-controls">
+            <select id="filterLine">
+                <option value="all">All Family Lines</option>
+            </select>
+            <select id="filterGen">
+                <option value="all">All Generations</option>
+                <option value="0">Mom Mom</option>
+                <option value="1">Children &amp; Spouses</option>
+                <option value="2">Grandchildren &amp; Spouses</option>
+                <option value="3">Great-Grandchildren</option>
+            </select>
+            <button class="btn-export" id="exportICS">Export to Outlook (.ics)</button>
+            <button class="btn-export" id="exportGoogle">Export to Google Calendar</button>
+        </div>
+        <div class="table-wrapper">
+            <table id="bdayTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Birthday</th>
+                        <th>Age</th>
+                        <th>Family Line</th>
+                        <th>Generation</th>
+                    </tr>
+                </thead>
+                <tbody id="bdayBody"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <footer>
+        <div class="celtic-border"></div>
+        <p>mmMAPPR v1 &mdash; Built with love for the Faherty family</p>
+    </footer>
+
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
