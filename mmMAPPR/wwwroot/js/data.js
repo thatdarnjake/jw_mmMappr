@@ -1,6 +1,6 @@
 // mmMAPPR Family Data - extracted from Faherty.xlsx
 const FAMILY_DATA = [
-    { name: "Thomas Faherty", birthday: "1913-02-03", gen: 0, color: "Purple" },
+    { name: "Thomas Faherty", birthday: "1915-02-03", gen: 0, color: "Purple" },
     { name: "Mom Mom", birthday: "1920-02-15", gen: 0, color: "Purple" },
     { name: "Tom Faherty", birthday: "1952-03-01", gen: 1, color: "Yellow" },
     { name: "Terry Faherty", birthday: "1954-04-11", gen: 1, color: "Red" },
