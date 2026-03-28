@@ -7,4 +7,5 @@ obj/
 Thumbs.db
 .DS_Store
 publish/
+publish-*/
 *.zip
