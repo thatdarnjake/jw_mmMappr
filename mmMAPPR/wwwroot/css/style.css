@@ -303,6 +303,19 @@ header {
     line-height: 1.4;
 }
 
+/* ---- Age Chart ---- */
+.age-chart-container {
+    display: flex;
+    justify-content: center;
+    position: relative;
+}
+
+#ageChart {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
 /* ---- Table ---- */
 .table-controls {
     display: flex;

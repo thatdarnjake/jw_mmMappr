@@ -207,6 +207,31 @@
         document.getElementById('chineseDetail').textContent =
             topCZ.map(c => `${c.animal.name}: ${c.count}`).join(', ');
 
+        // --- Most popular days of the month ---
+        const dayCounts = {};
+        members.forEach(m => { dayCounts[m.day] = (dayCounts[m.day] || 0) + 1; });
+        const topDays = Object.entries(dayCounts).sort((a, b) => b[1] - a[1]);
+        const maxDayCount = topDays[0] ? topDays[0][1] : 0;
+        const topDaysTied = topDays.filter(d => parseInt(d[1]) === maxDayCount);
+        const top3Days = topDays.slice(0, 3);
+
+        function ordinal(n) {
+            const s = ['th','st','nd','rd'];
+            const v = n % 100;
+            return n + (s[(v - 20) % 10] || s[v] || s[0]);
+        }
+
+        document.getElementById('popularDays').innerHTML = top3Days
+            .map((d, i) => `<span style="font-size:${i === 0 ? '1.4rem' : '1rem'}">${ordinal(parseInt(d[0]))}</span>`).join(' &middot; ');
+
+        // Build detail: show who shares each top day
+        const dayDetailParts = top3Days.map(d => {
+            const dayNum = parseInt(d[0]);
+            const who = members.filter(m => m.day === dayNum).map(m => m.name.split(' ')[0]);
+            return `${ordinal(dayNum)}: ${d[1]} (${who.join(', ')})`;
+        });
+        document.getElementById('popularDaysDetail').textContent = dayDetailParts.join(' | ');
+
         // --- Closest birthdays (all same-date + top 3 nearest) ---
         const dateGroups = {};
         members.forEach(m => {
@@ -744,6 +769,119 @@
         });
     }
 
+    // ---- Age Distribution Chart (Canvas) ----
+    function renderAgeChart() {
+        const canvas = document.getElementById('ageChart');
+        const ctx = canvas.getContext('2d');
+        const dpr = window.devicePixelRatio || 1;
+        const W = 900;
+        const H = 320;
+        canvas.width = W * dpr;
+        canvas.height = H * dpr;
+        canvas.style.width = W + 'px';
+        canvas.style.height = H + 'px';
+        ctx.scale(dpr, dpr);
+
+        // Build age buckets
+        const bucketSize = 5;
+        const ages = members.map(m => m.age).filter(a => a >= 0);
+        const maxAge = Math.max(...ages);
+        const bucketCount = Math.ceil((maxAge + 1) / bucketSize);
+        const buckets = [];
+        for (let i = 0; i < bucketCount; i++) {
+            const lo = i * bucketSize;
+            const hi = lo + bucketSize - 1;
+            const bucketMembers = members.filter(m => m.age >= lo && m.age <= hi && m.age >= 0);
+            buckets.push({ lo, hi, members: bucketMembers, count: bucketMembers.length });
+        }
+
+        const maxCount = Math.max(...buckets.map(b => b.count));
+        const leftPad = 50;
+        const rightPad = 30;
+        const topPad = 20;
+        const bottomPad = 50;
+        const chartW = W - leftPad - rightPad;
+        const chartH = H - topPad - bottomPad;
+        const barGap = 6;
+        const barW = (chartW - barGap * (buckets.length - 1)) / buckets.length;
+
+        ctx.clearRect(0, 0, W, H);
+
+        // Y-axis gridlines
+        const yTicks = Math.min(maxCount, 6);
+        for (let i = 0; i <= yTicks; i++) {
+            const val = Math.round((maxCount / yTicks) * i);
+            const y = topPad + chartH - (val / maxCount) * chartH;
+            ctx.beginPath();
+            ctx.moveTo(leftPad, y);
+            ctx.lineTo(leftPad + chartW, y);
+            ctx.strokeStyle = '#e8e4dc';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+            ctx.fillStyle = '#8a8aa0';
+            ctx.font = '400 10px Inter, sans-serif';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(val, leftPad - 8, y);
+        }
+
+        // Draw bars
+        buckets.forEach((b, i) => {
+            const x = leftPad + i * (barW + barGap);
+            const barH = b.count > 0 ? (b.count / maxCount) * chartH : 0;
+            const y = topPad + chartH - barH;
+
+            // Gradient fill using family line colors of members in bucket
+            if (b.count > 0) {
+                // Stack segments by family line
+                const lineCounts = {};
+                b.members.forEach(m => {
+                    const key = m.colorKey;
+                    lineCounts[key] = (lineCounts[key] || 0) + 1;
+                });
+                let segY = topPad + chartH;
+                Object.entries(lineCounts).forEach(([key, cnt]) => {
+                    const segH = (cnt / maxCount) * chartH;
+                    segY -= segH;
+                    const line = FAMILY_LINES[key] || FAMILY_LINES.Yellow;
+                    ctx.fillStyle = line.css;
+                    ctx.globalAlpha = 0.75;
+                    ctx.beginPath();
+                    ctx.roundRect(x, segY, barW, segH, [i === 0 && segY === y ? 4 : 0, i === 0 && segY === y ? 4 : 0, 0, 0]);
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                });
+
+                // Count label above bar
+                ctx.fillStyle = '#1a1a2e';
+                ctx.font = '600 11px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                ctx.fillText(b.count, x + barW / 2, y - 4);
+            }
+
+            // X-axis label
+            ctx.fillStyle = '#5a5a72';
+            ctx.font = '500 10px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            const label = b.lo === b.hi ? `${b.lo}` : `${b.lo}-${b.hi}`;
+            ctx.fillText(label, x + barW / 2, topPad + chartH + 8);
+        });
+
+        // Axis labels
+        ctx.fillStyle = '#8a8aa0';
+        ctx.font = '500 11px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Age Range', leftPad + chartW / 2, H - 6);
+
+        ctx.save();
+        ctx.translate(12, topPad + chartH / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText('Members', 0, 0);
+        ctx.restore();
+    }
+
     // ---- Birthday Table ----
     function renderTable() {
         const lineFilter = document.getElementById('filterLine').value;
@@ -872,6 +1010,7 @@
         renderAnalytics();
         renderGenMap();
         renderCalendarRing();
+        renderAgeChart();
         initFilters();
         renderTable();
 

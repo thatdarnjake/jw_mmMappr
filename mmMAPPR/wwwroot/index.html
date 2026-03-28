@@ -49,6 +49,11 @@
                     <div class="card-value" id="topChinese"></div>
                     <div class="card-detail" id="chineseDetail"></div>
                 </div>
+                <div class="card" id="cardPopularDays">
+                    <div class="card-label">Most Popular Days of the Month</div>
+                    <div class="card-value" id="popularDays"></div>
+                    <div class="card-detail" id="popularDaysDetail"></div>
+                </div>
                 <div class="card" id="cardClosest">
                     <div class="card-label">Top 3 Closest Birthdays</div>
                     <div class="card-value" id="closestBdays"></div>
@@ -82,6 +87,14 @@
             <div class="calendar-ring-container">
                 <canvas id="calendarRing" width="700" height="700"></canvas>
                 <div class="ring-tooltip" id="ringTooltip" style="display:none;"></div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title">Age Distribution</h2>
+            <p class="section-subtitle">How the family breaks down by age</p>
+            <div class="age-chart-container">
+                <canvas id="ageChart" width="900" height="320"></canvas>
             </div>
         </section>
 
@@ -146,9 +159,9 @@
                                 <div class="ancestor-note">Patrick <em>d.1910</em> &middot; Peter &middot; Sarah Maley <em>1875</em></div>
                             </div>
 
-                            <!-- John Gleason & Margaret Walsh -->
+                            <!-- John Gleeson & Margaret Walsh -->
                             <div class="ancestor-block">
-                                <div class="tree-node couple">John Gleason &amp; Margaret Walsh <em>d.1921</em></div>
+                                <div class="tree-node couple">John Gleeson &amp; Margaret Walsh <em>d.1921</em></div>
                                 <ul class="tree-children">
                                     <li><span class="tree-node small">John</span></li>
                                     <li><span class="tree-node small">Catherine</span></li>
@@ -272,7 +285,7 @@
                                         </ul>
                                     </li>
                                     <li>
-                                        <div class="tree-node gen2">Thomas Michael <em>1984</em><span class="tree-married">m. Jun 30, 2012</span>Kara Cee Brennan <em>1984</em></div>
+                                        <div class="tree-node gen2">Thomas Michael <em>1984</em><span class="tree-married">m. Jun 30, 2012</span>Kara Lennon Faherty <em>1984</em></div>
                                         <ul class="tree-children gc-row">
                                             <li><span class="tree-node gc">Nate <em>2014</em></span></li>
                                             <li><span class="tree-node gc">Eve <em>2017</em></span></li>
@@ -309,7 +322,7 @@
                             <!-- Tim & Gayle -->
                             <li class="gen1-branch green-line">
                                 <div class="tree-node couple gen1">
-                                    <strong>Timothy Gleason</strong> <em>1955</em>
+                                    <strong>Timothy Gleeson</strong> <em>1955</em>
                                     <span class="tree-married">m. Jul 8, 1978</span>
                                     <strong>Gayle Jean Mason</strong> <em>1955</em>
                                 </div>
@@ -368,7 +381,7 @@
         <p>mmMAPPR v1 &mdash; Built with love for the Faherty family</p>
     </footer>
 
-    <script src="js/data.js?v=3"></script>
-    <script src="js/app.js?v=3"></script>
+    <script src="js/data.js?v=4"></script>
+    <script src="js/app.js?v=4"></script>
 </body>
 </html>

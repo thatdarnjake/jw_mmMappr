@@ -62,7 +62,7 @@ app.MapGet("/api/calendar.ics", () =>
         ("Keely Rose", "2021-08-10", "Yellow"), ("Milo Rose", "2023-06-30", "Yellow"),
         ("Maura Nimmo", "1991-06-23", "Yellow"), ("Dean Nimmo", "1992-03-18", "Yellow"),
         ("Rory Nimmo", "2022-04-21", "Yellow"), ("Colin Nimmo", "2023-08-03", "Yellow"),
-        ("Tessa", "2025-05-14", "Yellow"), ("Katie Faherty", "1983-02-18", "Green"),
+        ("Tessa Nimmo", "2025-05-14", "Yellow"), ("Katie Faherty", "1983-02-18", "Green"),
         ("Erin Faherty", "1985-04-30", "Green"), ("Chris Faherty", "1985-05-16", "Green"),
         ("Luke Faherty", "2022-10-11", "Green"), ("Owen Faherty", "2025-06-30", "Green"),
         ("Christie Goldstein", "1986-08-24", "Blue"), ("Jeff Goldstein", "1990-03-17", "Blue"),

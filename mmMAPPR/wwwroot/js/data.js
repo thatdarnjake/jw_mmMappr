@@ -34,7 +34,7 @@ const FAMILY_DATA = [
     { name: "Dean Nimmo", birthday: "1992-03-18", gen: 2, color: "Yellow" },
     { name: "Rory Nimmo", birthday: "2022-04-21", gen: 3, color: "Yellow" },
     { name: "Colin Nimmo", birthday: "2023-08-03", gen: 3, color: "Yellow" },
-    { name: "Tessa", birthday: "2025-05-14", gen: 3, color: "Yellow" },
+    { name: "Tessa Nimmo", birthday: "2025-05-14", gen: 3, color: "Yellow" },
     { name: "Katie Faherty", birthday: "1983-02-18", gen: 2, color: "Green" },
     { name: "Erin Faherty", birthday: "1985-04-30", gen: 2, color: "Green" },
     { name: "Chris Faherty", birthday: "1985-05-16", gen: 2, color: "Green" },
