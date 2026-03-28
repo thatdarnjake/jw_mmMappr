@@ -29,6 +29,7 @@ body {
     color: var(--text);
     line-height: 1.6;
     min-height: 100vh;
+    padding-bottom: 90px;
 }
 
 /* ---- Celtic Border ---- */
@@ -707,6 +708,23 @@ footer p {
 .gc-row {
     flex-wrap: nowrap;
     gap: 6px;
+}
+
+/* ---- Spotify Player ---- */
+.spotify-player {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -2px 12px rgba(0,0,0,0.08);
+    padding: 0;
+}
+
+.spotify-player iframe {
+    display: block;
 }
 
 /* Responsive */
